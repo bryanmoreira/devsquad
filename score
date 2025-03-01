@@ -1,0 +1,34 @@
+#! /usr/bin/env php
+<?php
+
+declare(strict_types = 1);
+
+$filePath = __DIR__ . '/junit.xml';
+
+if (!file_exists($filePath)) {
+    echo 'File not found: ' . $filePath . PHP_EOL;
+    exit(1);
+}
+
+$xml = simplexml_load_file($filePath);
+
+$testSuite = $xml->testsuite;
+
+$totalTests    = (int)$testSuite['tests'];
+$totalFailures = (int)$testSuite['failures'];
+$totalErrors   = (int)$testSuite['errors'];
+$skipped       = (int)$testSuite['skipped'];
+
+$errors     = $totalFailures + $totalErrors + $skipped;
+$assertions = $totalTests - $errors;
+
+$testSuite['assertions'] = (string)$assertions;
+
+$examTestSuite = null;
+
+foreach ($testSuite->getChildren() as $child) {
+    $examTestSuite = $child;
+    $examTestSuite['assertions'] = (string)$assertions;
+}
+
+$xml->saveXML($filePath);
